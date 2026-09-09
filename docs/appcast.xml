@@ -1,8 +1,29 @@
-<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>Ruller</title>
+        <item>
+            <title>1.3.0</title>
+            <pubDate>Wed, 09 Sep 2026 17:20:33 +0300</pubDate>
+            <link>https://github.com/WorldStoryCm/best-mac-ruller</link>
+            <sparkle:version>5</sparkle:version>
+            <sparkle:shortVersionString>1.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[Five new ways to check alignment:
+
+- **Pixel loupe:** 4×, 8×, and 16× magnification with a backing-pixel grid and coordinates. Toggle with Control–Option–M. Requires Screen Recording permission only when you use it; capture stays local, with no audio, saved images, or uploads.
+- **Move several guides together:** Shift-click or drag a selection rectangle in Edit lines, then drag or nudge the selection. Style, duplicate, delete, and undo also work on the selected guides.
+- **Follow a window:** select guides, choose Attach…, and click a window. Guides follow its movement, hide when it is minimized or on another Space, and detach when it closes. Attachments last for the current session.
+- **High contrast:** a black-and-white outline makes guides visible over both light and dark content, without changing measured positions.
+- **Your shortcuts:** use the gear button or Keyboard Shortcuts… to record the four global combinations. Conflict detection, cancel, and restore defaults are included.
+
+Existing guides and settings are preserved. The controls scroll on smaller screens. macOS 13 or later; universal Apple Silicon and Intel build. This build is ad-hoc signed and is not Apple-notarized.
+]]></description>
+            <enclosure url="https://github.com/WorldStoryCm/best-mac-ruller/releases/download/v1.3.0/Ruller-1.3.0-mac-universal.zip" length="1978815" type="application/octet-stream" sparkle:edSignature="QCnEbEbQffH5oyGnKeIqwATwd46k8trtSVt+ext42LV1+MA41PndnTxqKWR5C0jDQZQk/cTgbU02aT7TWyGfBQ=="/>
+        </item>
         <item>
             <title>1.2.0</title>
             <pubDate>Wed, 09 Sep 2026 16:02:35 +0300</pubDate>
@@ -19,10 +40,11 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
 
 Existing users need to install this version manually once. Later releases can update through the app.
 ]]></description>
-            <enclosure url="https://github.com/WorldStoryCm/best-mac-ruller/releases/download/v1.2.0/Ruller-1.2.0-mac-universal.zip" length="1690996" type="application/octet-stream" sparkle:edSignature="oTiHlvMshbKbCevnQH+g7duhMUojIdNaTXv4Xx72cMalxTS8PzLa/n0GPoG4w0G36ewITZjPTcYx6wdGbUCMBA=="></enclosure>
+            <enclosure url="https://github.com/WorldStoryCm/best-mac-ruller/releases/download/v1.2.0/Ruller-1.2.0-mac-universal.zip" length="1690996" type="application/octet-stream" sparkle:edSignature="oTiHlvMshbKbCevnQH+g7duhMUojIdNaTXv4Xx72cMalxTS8PzLa/n0GPoG4w0G36ewITZjPTcYx6wdGbUCMBA=="/>
         </item>
     </channel>
-</rss><!-- sparkle-signatures:
-edSignature: wWEyZODGaZQjAzbvxWBPrmrSMUQRjkTbmOg5tGz944ppvSJEeWY6NbdVLWYhpQiY40AuEzcRNrWZ5u7AqgSHBA==
-length: 1654
+</rss>
+<!-- sparkle-signatures:
+edSignature: ftuZ8zTuSl0+tSIKwqIAUFCtRzz+nURG/g7ASORarqEMHi8aVmOYwOLOFKvLzLKs7FFMSJfgJUkD65nWkvRtBw==
+length: 3632
 -->
