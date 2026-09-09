@@ -1,4 +1,4 @@
-Ruller 1.1.0
+Ruller 1.2.0
 A small screen alignment utility for macOS 13 or later.
 This universal app supports both Apple Silicon and Intel Macs.
 
@@ -45,5 +45,13 @@ Reopen the controls with Control + Option + P or from the menu-bar ruler icon.
 Quit from that same menu.
 
 Lines and settings are saved automatically on your own Mac.
-No browser extension, account, network access, or screen recording is needed.
+Drawing and measuring work offline. No account or screen recording is needed.
 Screen pt roughly matches browser CSS pixels at 100% zoom; Device px uses macOS backing pixels.
+
+UPDATES
+Open the menu-bar ruler icon > Check for Updates...
+Check Automatically enables or disables periodic checks. Installation requires your choice.
+Updates are downloaded from GitHub and their signatures are checked before extraction.
+Your saved lines stay on your Mac. Screen contents and guides are never uploaded.
+If upgrading from 1.1.0 or earlier, quit Ruller and replace the app manually once.
+Latest download: https://github.com/WorldStoryCm/best-mac-ruller/releases/latest

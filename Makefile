@@ -1,4 +1,4 @@
-.PHONY: build run test share clean
+.PHONY: build run test test-updates share release clean
 build:
 	bash scripts/build.sh
 run: build
@@ -8,5 +8,9 @@ test:
 	.build/debug/Ruller --smoke-test
 share: build
 	bash scripts/package.sh
+test-updates:
+	python3 scripts/test-updates.py
+release:
+	bash scripts/release.sh
 clean:
 	swift package clean

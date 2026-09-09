@@ -16,6 +16,7 @@ import RullerCore
     private var hotKeyHandler: EventHandlerRef?
     private var previouslyEditing = false
     private var previousApp: NSRunningApplication?
+    private var updateController: UpdateController?
     private let smokeTest = CommandLine.arguments.contains("--smoke-test")
     private let renderPreview = CommandLine.arguments.contains("--render-preview")
     private let renderDistances = CommandLine.arguments.contains("--render-distances")
@@ -23,6 +24,14 @@ import RullerCore
     func applicationDidFinishLaunching(_ notification: Notification) {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         model = RullerModel(storageURL: (smokeTest || renderPreview || renderDistances) ? nil : support.appendingPathComponent("Ruller/guides.json"))
+        if !smokeTest && !renderPreview && !renderDistances {
+            updateController = UpdateController { [weak self] in
+                guard let self else { return }
+                self.hideControls()
+                self.model.commitTransaction()
+                self.model.save()
+            }
+        }
         let menu = makeMenu()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.image = NSImage(systemSymbolName: "ruler", accessibilityDescription: "Ruller")
@@ -77,6 +86,7 @@ import RullerCore
         }
         registerShortcuts()
         updateWindows()
+        updateController?.start()
         if smokeTest { runSmokeTest() }
         else if renderDistances { renderDistancePreview() }
         else if renderPreview { renderControls() }
@@ -102,6 +112,13 @@ import RullerCore
         add("Add Horizontal Guide", #selector(addHorizontal))
         add("Draw a Line", #selector(addSegment))
         menu.addItem(.separator())
+        if let updateController {
+            updateController.addMenuItems(to: menu)
+            menu.addItem(.separator())
+        }
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Development"
+        let versionItem = NSMenuItem(title: "Ruller \(version)", action: nil, keyEquivalent: "")
+        menu.addItem(versionItem)
         add("Quit Ruller", #selector(quit), key: "q")
         return menu
     }

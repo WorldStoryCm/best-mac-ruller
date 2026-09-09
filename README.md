@@ -1,6 +1,6 @@
 # Ruller
 
-A small native macOS app that keeps alignment guides above your other windows. Draw a line, switch pages, and see immediately whether the content moved. Built with Swift, AppKit, and native SwiftUI controls. No browser extension, Electron, network service, or third-party dependency.
+A small native macOS app that keeps alignment guides above your other windows. Draw a line, switch pages, and see immediately whether the content moved. Built with Swift, AppKit, and native SwiftUI controls. Sparkle provides signed in-app updates hosted on GitHub; drawing and measurement work offline.
 
 ## Start
 
@@ -17,9 +17,19 @@ make run
 
 ## Share with another Mac
 
-Run `make share` to build `dist/Ruller-1.1.0-mac-universal.zip`. Send that ZIP to your colleague. It contains the app and a short setup guide; it does not contain your saved lines or preferences. They can unzip it, drag Ruller.app to Applications, and open it.
+Download the universal ZIP from [the latest release](https://github.com/WorldStoryCm/best-mac-ruller/releases/latest), or run `make share` to build `dist/Ruller-<version>-mac-universal.zip`. It contains only `Ruller.app`, without your saved lines or preferences. Unzip it, drag Ruller.app to Applications, and open it.
 
 This local build is not Apple-notarized and has no Developer ID certificate, so macOS may block its first launch. After trying to open it, a colleague who trusts the copy you sent can use System Settings → Privacy & Security → Open Anyway. See [Apple's instructions](https://support.apple.com/en-gb/102445). Managed Macs may require IT approval. A Developer ID-signed and notarized release is needed for the standard verified-developer installation experience.
+
+## Updates
+
+Starting with **1.2.0**, choose **Check for Updates…** from the menu-bar ruler icon. **Check Automatically** controls periodic checks. Ruller asks before installing an update; the update replaces the app and relaunches it, keeping your saved guides. The palette closes and editing finishes before the update dialog appears.
+
+If you have **1.1.0 or earlier**, quit Ruller and replace it with the latest download once. Keep the app in Applications rather than running it from the downloaded ZIP or a temporary folder. Subsequent releases can update from inside Ruller.
+
+Update metadata and archives use Ed25519 signatures, verified before extraction. The feed is on GitHub Pages and ZIPs are on GitHub Releases; no private server or user account is required. Update checks contact GitHub and include the app version in the user agent. System profiling is disabled; guides and screen contents are never uploaded. Turn off **Check Automatically** to check only on request.
+
+For developers, [RELEASING.md](docs/RELEASING.md) explains `make release VERSION=1.2.1`, signing-key custody, and optional Apple notarization.
 
 ## Use
 
@@ -80,6 +90,10 @@ Source layout:
 - `Sources/Ruller/Palette.swift`: floating native controls.
 - `Sources/Ruller/Model.swift`: selection, undo, autosave, displays.
 - `Sources/Ruller/App.swift`: app lifecycle, menu bar, global shortcuts, overlay coordination.
+- `Sources/Ruller/UpdateController.swift`: Sparkle update menu and lifecycle.
+- `scripts/release.sh`: versioned, signed GitHub releases and appcast publication.
+
+After changing the updater, run `make test-updates` after `make build`. It performs a real Sparkle installation into a disposable app, then checks that modified archives and feeds are rejected. It uses a temporary test signing key and a loopback HTTP server; it does not access the production signing key or launch the real Ruller app.
 
 Saved state: `~/Library/Application Support/Ruller/guides.json`. The app starts in click-through mode, even when guides were last edited. No screen contents are captured or transmitted.
 
