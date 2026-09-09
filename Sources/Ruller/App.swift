@@ -8,12 +8,16 @@ import RullerCore
     private var model: RullerModel!
     private var palette: NSPanel!
     private var hosting: NSHostingView<PaletteView>!
+    private var paletteScroll: NSScrollView!
+    private var settingsPanel: NSPanel?
+    private var shortcutManager: ShortcutManager?
+    private var windowTracker: WindowTracker?
+    private var loupeController: LoupeController?
+    private var lastShortcuts: [ShortcutAction: KeyBinding] = [:]
     private var overlays: [(OverlayPanel, OverlayView)] = []
     private var statusItem: NSStatusItem!
     private var subscription: AnyCancellable?
     private var localMonitor: Any?
-    private var hotKeys: [EventHotKeyRef] = []
-    private var hotKeyHandler: EventHandlerRef?
     private var previouslyEditing = false
     private var previousApp: NSRunningApplication?
     private var updateController: UpdateController?
@@ -24,9 +28,25 @@ import RullerCore
     func applicationDidFinishLaunching(_ notification: Notification) {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         model = RullerModel(storageURL: (smokeTest || renderPreview || renderDistances) ? nil : support.appendingPathComponent("Ruller/guides.json"))
+        windowTracker = WindowTracker(model: model)
+        loupeController = LoupeController(model: model)
+        shortcutManager = ShortcutManager(model: model) { [weak self] action in
+            switch action {
+            case .controls: self?.toggleControls()
+            case .edit: self?.toggleEditing()
+            case .visibility: self?.toggleVisibility()
+            case .loupe: self?.toggleLoupe()
+            }
+        }
+        model.toggleLoupe = { [weak self] in self?.toggleLoupe() }
+        model.showSettings = { [weak self] in self?.showShortcutSettings() }
+        model.pickWindow = { [weak self] point in self?.windowTracker?.attach(at: point) }
         if !smokeTest && !renderPreview && !renderDistances {
             updateController = UpdateController { [weak self] in
                 guard let self else { return }
+                self.loupeController?.stop()
+                self.shortcutManager?.finishRecording(nil)
+                self.settingsPanel?.orderOut(nil)
                 self.hideControls()
                 self.model.commitTransaction()
                 self.model.save()
@@ -61,7 +81,11 @@ import RullerCore
         palette.hidesOnDeactivate = false
         palette.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 2)
         palette.collectionBehavior = overlayBehavior()
-        palette.contentView = hosting
+        paletteScroll = NSScrollView()
+        paletteScroll.drawsBackground = false; paletteScroll.hasVerticalScroller = true
+        paletteScroll.autohidesScrollers = true; paletteScroll.horizontalScrollElasticity = .none
+        paletteScroll.documentView = hosting
+        palette.contentView = paletteScroll
         palette.isMovableByWindowBackground = true
         palette.setFrameAutosaveName("RullerControls")
         palette.delegate = self
@@ -80,11 +104,15 @@ import RullerCore
         NotificationCenter.default.addObserver(self, selector: #selector(screensChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, event.window === self.palette else { return event }
-            if event.keyCode == 53 { self.palette.makeFirstResponder(nil); self.model.setEditing(false); return nil }
+            if event.keyCode == 53 {
+                self.palette.makeFirstResponder(nil)
+                if self.model.isPickingWindow { self.model.isPickingWindow = false } else { self.model.setEditing(false) }
+                return nil
+            }
             if self.palette.firstResponder is NSTextView { return event }
             return handleKey(event, model: self.model) ? nil : event
         }
-        registerShortcuts()
+        if !smokeTest && !renderPreview && !renderDistances { shortcutManager?.start() }
         updateWindows()
         updateController?.start()
         if smokeTest { runSmokeTest() }
@@ -104,9 +132,12 @@ import RullerCore
         func add(_ title: String, _ selector: Selector, key: String = "") {
             let item = NSMenuItem(title: title, action: selector, keyEquivalent: key); item.target = self; menu.addItem(item)
         }
-        add("Show / Hide Controls    ⌃⌥P", #selector(toggleControls))
-        add("Edit / Click Through    ⌃⌥R", #selector(toggleEditing))
-        add("Show / Hide Lines    ⌃⌥H", #selector(toggleVisibility))
+        for (action, selector) in [(ShortcutAction.controls, #selector(toggleControls)), (.edit, #selector(toggleEditing)),
+                                    (.visibility, #selector(toggleVisibility)), (.loupe, #selector(toggleLoupe))] {
+            add("\(action.title)    \(model.shortcutLabel(action))", selector)
+            menu.items.last?.tag = Int(action.hotKeyID)
+        }
+        add("Keyboard Shortcuts…", #selector(showShortcutSettings), key: ",")
         menu.addItem(.separator())
         add("Add Vertical Guide", #selector(addVertical))
         add("Add Horizontal Guide", #selector(addHorizontal))
@@ -168,12 +199,26 @@ import RullerCore
         resizePalette()
         if palette.isVisible { palette.orderFrontRegardless() }
         statusItem.button?.appearsDisabled = !model.isVisible
+        windowTracker?.synchronize()
+        if lastShortcuts != model.shortcuts {
+            lastShortcuts = model.shortcuts
+            for menu in [statusItem.menu, NSApp.mainMenu?.items.first?.submenu].compactMap({ $0 }) {
+                for action in ShortcutAction.allCases {
+                    menu.item(withTag: Int(action.hotKeyID))?.title = "\(action.title)    \(model.shortcutLabel(action))"
+                }
+            }
+        }
+        if let settingsPanel, let content = settingsPanel.contentView, settingsPanel.isVisible {
+            settingsPanel.setContentSize(content.fittingSize)
+        }
     }
 
     private func resizePalette() {
         let fitting = hosting.fittingSize
         guard fitting.height.isFinite, fitting.height > 50 else { return }
-        let height = fitting.height
+        let available = (palette.screen ?? NSScreen.main)?.visibleFrame.height ?? 800
+        let height = min(fitting.height, max(200, available - 32))
+        hosting.setFrameSize(NSSize(width: 350, height: fitting.height))
         let contentHeight = palette.contentRect(forFrameRect: palette.frame).height
         if abs(contentHeight - height) > 1 { palette.setContentSize(NSSize(width: 350, height: height)) }
         if let screen = palette.screen ?? NSScreen.main {
@@ -185,6 +230,7 @@ import RullerCore
     }
 
     @objc private func screensChanged() {
+        if model.loupeEnabled { loupeController?.stop() }
         model.setEditing(false); model.refreshDisplays(); rebuildOverlays(); updateWindows()
     }
     @objc func showControls() { resizePalette(); palette.makeKeyAndOrderFront(nil) }
@@ -198,6 +244,21 @@ import RullerCore
     }
     @objc private func toggleEditing() { model.setEditing(!model.isEditing) }
     @objc private func toggleVisibility() { model.toggleVisibility() }
+    @objc private func toggleLoupe() { loupeController?.toggle() }
+    @objc private func showShortcutSettings() {
+        model.setEditing(false)
+        if settingsPanel == nil {
+            let content = NSHostingView(rootView: ShortcutSettingsView(model: model))
+            let panel = NSPanel(contentRect: NSRect(origin: .zero, size: content.fittingSize),
+                                styleMask: [.titled, .closable, .utilityWindow], backing: .buffered, defer: false)
+            panel.title = "Ruller Shortcuts"; panel.isReleasedWhenClosed = false
+            panel.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 4)
+            panel.collectionBehavior = overlayBehavior(); panel.contentView = content; panel.delegate = self
+            panel.hidesOnDeactivate = false; panel.center(); settingsPanel = panel
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        settingsPanel?.makeKeyAndOrderFront(nil)
+    }
     @objc private func addVertical() { model.arm(.vertical) }
     @objc private func addHorizontal() { model.arm(.horizontal) }
     @objc private func addSegment() { model.arm(.segment) }
@@ -206,46 +267,18 @@ import RullerCore
     @objc private func quit() { NSApp.terminate(nil) }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if sender === settingsPanel { shortcutManager?.finishRecording(nil); sender.orderOut(nil); return false }
         hideControls()
         return false
+    }
+    func windowDidResignKey(_ notification: Notification) {
+        if notification.object as? NSWindow === settingsPanel { shortcutManager?.finishRecording(nil) }
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showControls(); return true }
     func applicationWillTerminate(_ notification: Notification) {
         model.commitTransaction(); model.save()
-        hotKeys.forEach { UnregisterEventHotKey($0) }
-        if let hotKeyHandler { RemoveEventHandler(hotKeyHandler) }
+        shortcutManager?.stop(); windowTracker?.stop(); loupeController?.stop()
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
-    }
-
-    private func registerShortcuts() {
-        guard !smokeTest && !renderPreview && !renderDistances else { return }
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        let pointer = Unmanaged.passUnretained(self).toOpaque()
-        let result = InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
-            guard let event, let context else { return OSStatus(eventNotHandledErr) }
-            var id = EventHotKeyID()
-            let error = GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil,
-                                          MemoryLayout<EventHotKeyID>.size, nil, &id)
-            guard error == noErr else { return error }
-            let delegate = Unmanaged<AppDelegate>.fromOpaque(context).takeUnretainedValue()
-            MainActor.assumeIsolated {
-                switch id.id {
-                case 1: delegate.toggleEditing()
-                case 2: delegate.toggleVisibility()
-                case 3: delegate.toggleControls()
-                default: break
-                }
-            }
-            return noErr
-        }, 1, &eventType, pointer, &hotKeyHandler)
-        guard result == noErr else { model.shortcutWarning = "Global shortcuts unavailable. Use the ruler in the menu bar."; return }
-        for (key, id) in [(UInt32(kVK_ANSI_R), UInt32(1)), (UInt32(kVK_ANSI_H), UInt32(2)), (UInt32(kVK_ANSI_P), UInt32(3))] {
-            var reference: EventHotKeyRef?
-            let error = RegisterEventHotKey(key, UInt32(controlKey | optionKey), EventHotKeyID(signature: 0x52554C52, id: id),
-                                            GetApplicationEventTarget(), 0, &reference)
-            if error == noErr, let reference { hotKeys.append(reference) }
-            else { model.shortcutWarning = "A global shortcut is in use. All controls remain available in the menu bar." }
-        }
     }
 
     private func runSmokeTest() {
@@ -328,6 +361,7 @@ import RullerCore
             precondition(!restored.isEditing)
             try FileManager.default.removeItem(at: temporary)
         } catch { fatalError("Persistence smoke test failed: \(error)") }
+        runFeatureSmokeTests()
         print("Ruller smoke test passed: \(overlays.count) display(s), overlay visibility, click-through, pixel nudge, undo/redo.")
         print("Input handlers passed: place/drag vertical, Shift-constrained segment, Escape restores click-through.")
         print("Persistence passed: guides, exact positions, units and labels survive save/reload; editing starts off.")
@@ -343,6 +377,7 @@ import RullerCore
         model.add(kind: .horizontal, at: Position(0, 298), displayID: display.id)
         model.add(kind: .vertical, at: Position(72, 0), displayID: display.id)
         model.commitTransaction()
+        model.selectAll(); model.highContrast = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.resizePalette()
             self.hosting.layoutSubtreeIfNeeded()
@@ -351,6 +386,7 @@ import RullerCore
             let output = CommandLine.arguments.last!
             try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: output))
             print("Rendered controls: \(self.hosting.bounds.size) to \(output)")
+            renderFeaturePreviews(model: self.model, beside: URL(fileURLWithPath: output))
             NSApp.terminate(nil)
         }
     }

@@ -114,11 +114,16 @@ public struct SavedState: Codable {
     // Optional additions keep version 1 files from earlier releases readable.
     public var showDistances: Bool?
     public var distanceAnchors: [String: Position]?
+    public var highContrast: Bool?
+    public var shortcuts: [String: KeyBinding]?
+    public var loupeZoom: Int?
     public init(guides: [Guide], unit: MeasurementUnit, showLabels: Bool,
                 defaultColor: GuideColor, defaultOpacity: Double, defaultWidth: Int,
-                showDistances: Bool = true, distanceAnchors: [String: Position] = [:]) {
+                showDistances: Bool = true, distanceAnchors: [String: Position] = [:],
+                highContrast: Bool = false, shortcuts: [String: KeyBinding] = [:], loupeZoom: Int = 8) {
         self.guides = guides; self.unit = unit; self.showLabels = showLabels
         self.defaultColor = defaultColor; self.defaultOpacity = defaultOpacity; self.defaultWidth = defaultWidth
         self.showDistances = showDistances; self.distanceAnchors = distanceAnchors
+        self.highContrast = highContrast; self.shortcuts = shortcuts; self.loupeZoom = loupeZoom
     }
 }

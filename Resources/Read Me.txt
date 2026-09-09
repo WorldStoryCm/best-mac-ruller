@@ -1,4 +1,4 @@
-Ruller 1.2.0
+Ruller 1.3.0
 A small screen alignment utility for macOS 13 or later.
 This universal app supports both Apple Silicon and Intel Macs.
 
@@ -30,22 +30,42 @@ In Edit mode, drag a distance label to move the measurements without moving the 
 Use the Distances checkbox to show/hide measurements separately from coordinate labels.
 Gap measurements work with the Horizontal and Vertical tools; angled lines show their length.
 
+MULTI-SELECTION AND WINDOW ATTACHMENT
+In Edit lines, Shift-click guides or drag a rectangle from empty space to select several.
+Command + A selects all visible guides on the current display. Drag or nudge them together.
+Color, opacity, thickness, duplicate, delete, and undo apply to the selected guides.
+Choose Attach..., then click a window. Its guides follow when you move it.
+They hide with the window, detach when it closes, and can be detached manually.
+Links last for this Ruller session; guide positions still save after quitting.
+
+LOUPE AND CONTRAST
+Control + Option + M toggles a pixel loupe. Choose 4x, 8x, or 16x zoom in the panel.
+On first use, allow Ruller in macOS Screen Recording settings; restart if macOS asks.
+Only the loupe reads screen pixels. No audio, image saving, or uploading is involved.
+The loupe excludes Ruller's own windows and starts off after relaunch.
+High contrast adds a black-and-white outline without moving the guide's measured position.
+
 SHORTCUTS
 Control + Option + P    Show / hide controls
 Control + Option + R    Edit / click through
 Control + Option + H    Show / hide lines
+Control + Option + M    Show / hide loupe
+Command + A            Select all visible guides on the current display
 Escape                 Finish editing
-Arrow keys             Move selected line by one chosen unit
+Arrow keys             Move selected guides by one chosen unit
 Shift + arrows         Move by ten units
 Option + arrows        Move by one display backing pixel
 Command + Z            Undo
+
+Customize the four global shortcuts using the gear button or Keyboard Shortcuts in the menu.
+Click a shortcut, then press your combination. Escape cancels; Restore defaults resets all four.
 
 Hiding the controls finishes editing and keeps your guides visible.
 Reopen the controls with Control + Option + P or from the menu-bar ruler icon.
 Quit from that same menu.
 
 Lines and settings are saved automatically on your own Mac.
-Drawing and measuring work offline. No account or screen recording is needed.
+Drawing and measuring work offline. No account is needed; Screen Recording permission is needed only for the optional loupe.
 Screen pt roughly matches browser CSS pixels at 100% zoom; Device px uses macOS backing pixels.
 
 UPDATES
