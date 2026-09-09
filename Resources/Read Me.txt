@@ -1,0 +1,49 @@
+Ruller 1.1.0
+A small screen alignment utility for macOS 13 or later.
+This universal app supports both Apple Silicon and Intel Macs.
+
+INSTALL
+1. Unzip the download.
+2. Drag Ruller.app into your Applications folder.
+3. Open Ruller. Look for the floating controls and ruler icon in the menu bar.
+
+FIRST OPEN
+This build is locally signed, but is not notarized by Apple and has no Developer ID certificate.
+If macOS blocks it, and you trust the copy your colleague sent, first try opening the app,
+then go to System Settings > Privacy & Security > Open Anyway.
+Apple's instructions: https://support.apple.com/en-gb/102445
+On a managed work Mac, IT may need to approve it.
+
+USE
+Choose Vertical or Horizontal, then click to place a line.
+Choose Line, then drag to draw an angled line.
+Press Escape when done: you can now click, scroll, and switch windows underneath.
+Your lines remain fixed on the screen.
+
+MEASURE DISTANCES
+Add two horizontal or two vertical guides. The distance between them appears automatically.
+With more guides, each neighboring pair gets its own measurement.
+Values update live as you drag or nudge, and stay visible in click-through mode.
+Choose Screen pt or Device px for the units; on a 2x Retina screen, 0.5 pt = 1 px.
+Distance uses the guide coordinates, independent of line thickness.
+In Edit mode, drag a distance label to move the measurements without moving the guides.
+Use the Distances checkbox to show/hide measurements separately from coordinate labels.
+Gap measurements work with the Horizontal and Vertical tools; angled lines show their length.
+
+SHORTCUTS
+Control + Option + P    Show / hide controls
+Control + Option + R    Edit / click through
+Control + Option + H    Show / hide lines
+Escape                 Finish editing
+Arrow keys             Move selected line by one chosen unit
+Shift + arrows         Move by ten units
+Option + arrows        Move by one display backing pixel
+Command + Z            Undo
+
+Hiding the controls finishes editing and keeps your guides visible.
+Reopen the controls with Control + Option + P or from the menu-bar ruler icon.
+Quit from that same menu.
+
+Lines and settings are saved automatically on your own Mac.
+No browser extension, account, network access, or screen recording is needed.
+Screen pt roughly matches browser CSS pixels at 100% zoom; Device px uses macOS backing pixels.
