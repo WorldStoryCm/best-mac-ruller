@@ -6,6 +6,23 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Ruller</title>
         <item>
+            <title>1.3.1</title>
+            <pubDate>Thu, 10 Sep 2026 10:21:02 +0300</pubDate>
+            <link>https://github.com/WorldStoryCm/best-mac-ruller</link>
+            <sparkle:version>6</sparkle:version>
+            <sparkle:shortVersionString>1.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[Fixes Attach selecting a different application behind the window you clicked.
+
+- Window selection now follows macOS mouse hit-testing, including overlapping, floating, and click-through windows.
+- Picking uses the original click coordinates before changing focus, so guide-unit rounding cannot change the selected window at an edge.
+- Finishing Attach returns focus to the selected application. A failed new selection no longer hides its message behind the previous attachment label.
+
+Verified with separate test applications, moving and overlapping windows, and two connected displays. Existing guides and preferences are preserved. macOS 13 or later; universal Apple Silicon and Intel build. This build is ad-hoc signed and is not Apple-notarized.
+]]></description>
+            <enclosure url="https://github.com/WorldStoryCm/best-mac-ruller/releases/download/v1.3.1/Ruller-1.3.1-mac-universal.zip" length="2013502" type="application/octet-stream" sparkle:edSignature="2pvyuEMNRL36X9aKjxq6C6qEAdJRRefbeDo8WaWhVqxIZbyxh4ibeqGAGYq2xcNpY+/6sAAmgG3ZN0ed0EzcAg=="/>
+        </item>
+        <item>
             <title>1.3.0</title>
             <pubDate>Wed, 09 Sep 2026 17:20:33 +0300</pubDate>
             <link>https://github.com/WorldStoryCm/best-mac-ruller</link>
@@ -45,6 +62,6 @@ Existing users need to install this version manually once. Later releases can up
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: ftuZ8zTuSl0+tSIKwqIAUFCtRzz+nURG/g7ASORarqEMHi8aVmOYwOLOFKvLzLKs7FFMSJfgJUkD65nWkvRtBw==
-length: 3632
+edSignature: OergUcn0QNzwRvSr598HnGoAYYHEMEKcBYbCgVqGNnIPqO+45O96LCXdXc/5sYd/gV4sov//nZ4aWxX6rcswCQ==
+length: 5157
 -->
