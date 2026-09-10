@@ -1,25 +1,24 @@
 # Ruller
 
-A small native macOS app that keeps alignment guides above your other windows. Draw a line, switch pages, and see immediately whether the content moved. Built with Swift, AppKit, and native SwiftUI controls. Sparkle provides signed in-app updates hosted on GitHub; drawing and measurement work offline.
+A small native macOS app that keeps alignment guides above your other windows. Draw a line, switch pages, and see immediately whether the content moved. Measure spacing, spot a 1–2 px offset, or attach guides to a window as it moves.
 
-## Start
+**[Download for macOS](https://github.com/WorldStoryCm/best-mac-ruller/releases/latest)** · macOS 13 or later · Apple Silicon and Intel
 
-Open `dist/Ruller.app`. A floating control panel appears and a ruler icon lives in your menu bar. **Control–Option–P** toggles the controls between shown and hidden. Hiding or closing the panel finishes editing and leaves your guides visible and click-through. Quit from the ruler menu.
+![Ruller above a sample webpage: cyan guides measure a 64 px vertical gap, while coral and violet guides reveal a 2 px difference between the left edges of two sections. The floating controls are on the right.](docs/images/ruller-example.png)
 
-To rebuild from source (macOS 13+, Xcode or Swift command-line tools):
+*Example with sample content and Ruller's actual controls and guide renderer. The labels show a 64 px gap and a 2 px alignment difference; measurements remain visible in click-through mode.*
 
-```sh
-cd /Users/x11/work/ruller
-make run
-```
+## Install
 
-`make build` creates an ad-hoc-signed, universal `dist/Ruller.app` for Apple Silicon and Intel Macs running macOS 13 or later. You can also open `Package.swift` in Xcode.
+1. Download `Ruller-<version>-mac-universal.zip` from [the latest release](https://github.com/WorldStoryCm/best-mac-ruller/releases/latest).
+2. Unzip it and drag **Ruller.app** into **Applications**.
+3. Open Ruller. A floating control panel appears, with a ruler icon in your menu bar.
 
-## Share with another Mac
+Current releases are ad-hoc signed and not Apple-notarized. If macOS blocks the first launch, try opening Ruller, then use **System Settings → Privacy & Security → Open Anyway** if you trust the download. See [Apple's instructions](https://support.apple.com/en-gb/102445).
 
-Download the universal ZIP from [the latest release](https://github.com/WorldStoryCm/best-mac-ruller/releases/latest), or run `make share` to build `dist/Ruller-<version>-mac-universal.zip`. It contains only `Ruller.app`, without your saved lines or preferences. Unzip it, drag Ruller.app to Applications, and open it.
+**Control–Option–P** shows or hides the controls. Hiding or closing the panel finishes editing and leaves your guides visible and click-through. Quit from the ruler menu.
 
-This local build is not Apple-notarized and has no Developer ID certificate, so macOS may block its first launch. After trying to open it, a colleague who trusts the copy you sent can use System Settings → Privacy & Security → Open Anyway. See [Apple's instructions](https://support.apple.com/en-gb/102445). Managed Macs may require IT approval. A Developer ID-signed and notarized release is needed for the standard verified-developer installation experience.
+To share Ruller, send the release link or ZIP. The archive contains the app, without your saved lines or preferences. Drawing and measurement work offline; no account is needed.
 
 ## Updates
 
@@ -29,7 +28,7 @@ If you have **1.1.0 or earlier**, quit Ruller and replace it with the latest dow
 
 Update metadata and archives use Ed25519 signatures, verified before extraction. The feed is on GitHub Pages and ZIPs are on GitHub Releases; no private server or user account is required. Update checks contact GitHub and include the app version in the user agent. System profiling is disabled; guides and screen contents are never uploaded. Turn off **Check Automatically** to check only on request.
 
-For developers, [RELEASING.md](docs/RELEASING.md) explains `make release VERSION=1.3.1`, signing-key custody, and optional Apple notarization.
+For maintainers, [RELEASING.md](docs/RELEASING.md) explains publishing a new version, signing-key custody, and optional Apple notarization.
 
 ## Use
 
@@ -92,6 +91,22 @@ In **Edit lines** mode, drag a distance label sideways for horizontal guides, or
 
 Open the **gear button** or **Keyboard Shortcuts…** in the ruler menu to change the four global shortcuts. Click a combination and press the new keys; Escape cancels. Duplicate and unavailable combinations are rejected, and choices are saved across relaunches. Leaving the settings window cancels unfinished recording. **Restore defaults** restores the table above. Global shortcuts use Carbon's hotkey registration and require no Accessibility or Input Monitoring permission. If a shortcut is occupied, a notice appears in the panel and the menu remains available. In edit mode the overlay receives clicks across the displays; Escape always restores click-through. System security screens and OS-owned surfaces can appear above the overlay.
 
+## Build from source
+
+Built with Swift, AppKit, and SwiftUI; [Sparkle](https://sparkle-project.org/) provides signed in-app updates. You need macOS 13 or later, Swift 5.9 or newer (Xcode or the command-line tools), Python 3, and internet access for the first dependency download.
+
+Clone into a directory of your choice:
+
+```sh
+git clone https://github.com/WorldStoryCm/best-mac-ruller.git
+cd best-mac-ruller
+make run
+```
+
+`make run` builds and opens `dist/Ruller.app`. Quit a running copy before rebuilding it. To update an existing source checkout, run `git pull --ff-only`, then `make run` from the repository root. Installed release users can use **Check for Updates…** instead.
+
+`make build` creates an ad-hoc-signed, universal app for Apple Silicon and Intel. `make share` builds `dist/Ruller-<version>-mac-universal.zip` for distribution. You can also open `Package.swift` in Xcode.
+
 ## Development and verification
 
 ```sh
@@ -115,6 +130,8 @@ Source layout:
 - `scripts/release.sh`: versioned, signed GitHub releases and appcast publication.
 
 After changing the updater, run `make test-updates` after `make build`. It performs a real Sparkle installation into a disposable app, then checks that modified archives and feeds are rejected. It uses a temporary test signing key and a loopback HTTP server; it does not access the production signing key or launch the real Ruller app.
+
+To regenerate the README example, run `bash scripts/render-example.sh` in a graphical macOS session. It renders the real palette and overlay over a synthetic webpage into `docs/images/ruller-example.png`, without capturing the desktop or loading saved guides.
 
 Saved state: `~/Library/Application Support/Ruller/guides.json`. The app starts in click-through mode, even when guides were last edited. Only the optional loupe reads screen pixels, locally and while enabled. No screen contents are saved or transmitted. Manual loupe acceptance requires granting Screen Recording permission, then checking live capture across monitors and at screen edges.
 

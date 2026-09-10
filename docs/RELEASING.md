@@ -4,8 +4,9 @@ Direct downloads use Sparkle 2.9.6, GitHub Releases for ZIPs, and GitHub Pages f
 
 ## Day-to-day development
 
+From the repository root (see [Build from source](../README.md#build-from-source) for clone and setup instructions):
+
 ```sh
-cd /Users/x11/work/ruller
 make run       # rebuild and open the local app
 make test      # unit tests plus AppKit smoke checks
 make share     # universal ZIP in dist/
@@ -15,19 +16,17 @@ Quit a running copy before rebuilding it. The app keeps guides in `~/Library/App
 
 ## Publish the next version
 
-1. Write `releases/1.2.1.md` with user-facing release notes.
+1. Choose an unused version greater than the current one, for example `1.3.3`, and write `releases/1.3.3.md` with user-facing release notes.
 2. Commit your source changes and notes, then push `main`.
 3. Run:
 
    ```sh
-   make release VERSION=1.2.1
+   make release VERSION=1.3.3
    ```
 
 Use a new `major.minor.patch` version greater than the current one. The script updates the app version and increments `CFBundleVersion`, runs tests, builds both architectures, signs and packages the app, generates signed metadata, commits the release, tags it, and publishes the ZIP. It pushes the feed commit to `main` only after the archive is publicly available. GitHub Pages then deploys `docs/appcast.xml`.
 
 The release command needs a clean checkout on `main`, matching `origin/main`, GitHub write access through `gh auth login`, and the matching Sparkle key in Keychain. macOS can ask to allow `generate_keys`, `generate_appcast`, or `sign_update` to access that key. Review and allow the official Sparkle tools. Archives are immutable: never replace the ZIP of an existing release, change published build numbers, or force-push release tags.
-
-For the first release only, the committed source already has version 1.2.0 and build 4; `make release` publishes that version without another bump.
 
 ## Signing key
 
@@ -67,7 +66,7 @@ Once a Developer ID Application certificate and a `notarytool` Keychain profile 
 ```sh
 RULLER_SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)' \
 RULLER_NOTARY_PROFILE='ruller-notary' \
-make release VERSION=1.3.0
+make release VERSION=1.3.3
 ```
 
 The script signs embedded helpers and the app in order, enables the hardened runtime, submits the ZIP for notarization, staples the ticket, then repackages and signs the final archive for Sparkle. It stops if notarization fails. Certificate/profile setup is a separate step; the current repository contains no Apple credentials.
