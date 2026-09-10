@@ -6,6 +6,22 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Ruller</title>
         <item>
+            <title>1.3.2</title>
+            <pubDate>Thu, 10 Sep 2026 10:53:44 +0300</pubDate>
+            <link>https://github.com/WorldStoryCm/best-mac-ruller</link>
+            <sparkle:version>7</sparkle:version>
+            <sparkle:shortVersionString>1.3.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[Fixes controls responding only when clicking directly on their text or icon.
+
+- **Click through / Edit lines** now use the full segment area, including the empty space beside their labels.
+- Guide tool tiles, color swatches, and the settings/visibility buttons use their full existing button bounds too.
+
+The panel layout, keyboard shortcuts, and saved guides are unchanged. macOS 13 or later; universal Apple Silicon and Intel build. This build is ad-hoc signed and is not Apple-notarized.
+]]></description>
+            <enclosure url="https://github.com/WorldStoryCm/best-mac-ruller/releases/download/v1.3.2/Ruller-1.3.2-mac-universal.zip" length="2018368" type="application/octet-stream" sparkle:edSignature="24Tp9vqaPqLnFSAaSO/BbgsYL/7HpYU1+VQ7/jOMoJ06qPq8l4qaPq6Tm2WUL2LYTlVOq0wgRwW4GV3yrjoaBg=="/>
+        </item>
+        <item>
             <title>1.3.1</title>
             <pubDate>Thu, 10 Sep 2026 10:21:02 +0300</pubDate>
             <link>https://github.com/WorldStoryCm/best-mac-ruller</link>
@@ -62,6 +78,6 @@ Existing users need to install this version manually once. Later releases can up
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: OergUcn0QNzwRvSr598HnGoAYYHEMEKcBYbCgVqGNnIPqO+45O96LCXdXc/5sYd/gV4sov//nZ4aWxX6rcswCQ==
-length: 5157
+edSignature: vNBm7qnrXj92vV2I9b201Ua2R/iPox8nd85OGVFXh408zlreMAKpjl2SCYLBc4Oa9NbK6ttOeMmHx87cYlvdBQ==
+length: 6423
 -->
