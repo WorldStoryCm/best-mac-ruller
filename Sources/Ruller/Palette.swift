@@ -114,7 +114,7 @@ struct PaletteView: View {
                         .disabled(!model.selectedIDs.contains(where: { model.attachments[$0] != nil }))
                         .help("Detach selected guides from their window").accessibilityLabel("Detach selection from window")
                 }.buttonStyle(.borderless).font(.system(size: 11))
-                if let link = model.selectedID.flatMap({ model.attachments[$0] }) {
+                if !model.isPickingWindow, let link = model.selectedID.flatMap({ model.attachments[$0] }) {
                     Text("Following \(link.window.title)").font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
                 } else if let message = model.attachmentMessage {
                     Text(message).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)

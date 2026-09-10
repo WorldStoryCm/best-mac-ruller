@@ -304,9 +304,15 @@ struct GapAnnotation {
 
     override func mouseDown(with event: NSEvent) {
         guard model.isEditing else { return }
+        if model.isPickingWindow, let window {
+            // Resolve the window at the original click before changing focus.
+            // Guide-unit snapping can cross a window edge, so do not use position().
+            let point = window.convertPoint(toScreen: event.locationInWindow)
+            model.pickWindow?(Position(point.x, (NSScreen.screens.first?.frame.maxY ?? 0) - point.y))
+            return
+        }
         window?.makeKey(); window?.makeFirstResponder(self)
         let p = position(event)
-        if model.isPickingWindow { model.pickWindow?(display.global(p)); return }
         origin = p; movingEndpoint = nil
         model.loupeFocus = nil
         model.activeDisplayID = display.id

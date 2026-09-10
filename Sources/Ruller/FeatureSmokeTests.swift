@@ -43,7 +43,9 @@ import RullerCore
     model.select(ids: [a, b], displayID: display.id)
     let initialFrame = CGRect(x: display.globalFrame.minX + 50, y: display.globalFrame.minY + 80, width: 400, height: 300)
     var windows = [TrackedWindow(id: 4_000_000, ownerPID: 9_999, title: "Test window", frame: initialFrame, isOnScreen: true)]
-    let tracker = WindowTracker(model: model, readWindows: { windows })
+    let tracker = WindowTracker(model: model, readWindows: { windows }, windowAtPoint: { point in
+        windows.first { $0.isOnScreen && $0.frame.contains(CGPoint(x: point.x, y: point.y)) }
+    })
     tracker.attach(at: Position(initialFrame.midX, initialFrame.midY))
     precondition(model.attachments.count == 2 && !model.isEditing)
     windows[0].frame.origin.x += 30; windows[0].frame.origin.y += 20; tracker.poll()
@@ -64,13 +66,14 @@ import RullerCore
     // Verify the OS metadata boundary with a window created by this test.
     let fixture = NSWindow(contentRect: CGRect(x: display.screen.visibleFrame.minX + 80, y: display.screen.visibleFrame.minY + 80, width: 160, height: 100),
                            styleMask: [.titled], backing: .buffered, defer: false)
-    fixture.isReleasedWhenClosed = false; fixture.title = "Ruller window test"; fixture.orderFront(nil)
+    fixture.isReleasedWhenClosed = false; fixture.title = "Ruller window test"
+    fixture.animationBehavior = .none; fixture.orderFront(nil)
     fixture.displayIfNeeded()
     RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
     let metadata = WindowTracker.systemWindows(excludingPID: -1).first { $0.id == CGWindowID(fixture.windowNumber) }
     precondition(metadata != nil, "Own window \(fixture.windowNumber) missing from CGWindowList; level \(fixture.level.rawValue)")
-    precondition(metadata!.frame.minX == fixture.frame.minX)
-    precondition(metadata!.frame.minY == (NSScreen.screens.first?.frame.maxY ?? 0) - fixture.frame.maxY)
+    precondition(metadata!.frame.minX == fixture.frame.minX, "CG bounds \(metadata!.frame), NS frame \(fixture.frame)")
+    precondition(metadata!.frame.minY == (NSScreen.screens.first?.frame.maxY ?? 0) - fixture.frame.maxY, "CG bounds \(metadata!.frame), NS frame \(fixture.frame)")
     fixture.close()
     print("Window attachment passed: OS bounds, tracking, relative nudge, hide/restore, offscreen return, closing.")
 
@@ -102,6 +105,9 @@ import RullerCore
         saved.shortcuts[.edit] = ShortcutAction.controls.defaultShortcut
         saved.save()
         let restored = RullerModel(storageURL: url)
+        precondition(restored.selectedID != nil && restored.selectedIDs.contains(restored.selectedID!), "Saved guide must be selectable immediately after relaunch")
+        restored.armWindowPicker()
+        precondition(restored.isPickingWindow && restored.isEditing, "Attach must enter window picking after relaunch")
         precondition(restored.highContrast && restored.loupeZoom == 16 && !restored.loupeEnabled)
         precondition(restored.shortcuts == saved.shortcuts && restored.guides == saved.guides)
         try FileManager.default.removeItem(at: folder)

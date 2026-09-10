@@ -29,6 +29,10 @@ import RullerCore
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         model = RullerModel(storageURL: (smokeTest || renderPreview || renderDistances) ? nil : support.appendingPathComponent("Ruller/guides.json"))
         windowTracker = WindowTracker(model: model)
+        windowTracker?.didAttach = { [weak self] window in
+            // Finish picking in the clicked application, even if editing began elsewhere.
+            self?.previousApp = NSRunningApplication(processIdentifier: window.ownerPID)
+        }
         loupeController = LoupeController(model: model)
         shortcutManager = ShortcutManager(model: model) { [weak self] action in
             switch action {
@@ -362,6 +366,8 @@ import RullerCore
             try FileManager.default.removeItem(at: temporary)
         } catch { fatalError("Persistence smoke test failed: \(error)") }
         runFeatureSmokeTests()
+        showControls()
+        runWindowAttachmentIntegrationTests(appModel: model, appOverlay: overlays[0].1)
         print("Ruller smoke test passed: \(overlays.count) display(s), overlay visibility, click-through, pixel nudge, undo/redo.")
         print("Input handlers passed: place/drag vertical, Shift-constrained segment, Escape restores click-through.")
         print("Persistence passed: guides, exact positions, units and labels survive save/reload; editing starts off.")

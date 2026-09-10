@@ -18,30 +18,56 @@ struct WindowAttachment: Equatable {
 @MainActor final class WindowTracker {
     private unowned let model: RullerModel
     private let readWindows: () -> [TrackedWindow]
+    private let windowAtPoint: (Position) -> TrackedWindow?
     private var timer: Timer?
+    var didAttach: ((TrackedWindow) -> Void)?
 
-    init(model: RullerModel, readWindows: (() -> [TrackedWindow])? = nil) {
+    init(model: RullerModel, readWindows: (() -> [TrackedWindow])? = nil,
+         windowAtPoint: ((Position) -> TrackedWindow?)? = nil) {
         self.model = model
         self.readWindows = readWindows ?? { Self.systemWindows() }
+        self.windowAtPoint = windowAtPoint ?? { Self.systemWindow(at: $0) }
     }
 
     static func systemWindows(excludingPID: pid_t = ProcessInfo.processInfo.processIdentifier) -> [TrackedWindow] {
         guard let list = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
-        return list.compactMap { info in
-            guard let id = (info[kCGWindowNumber as String] as? NSNumber)?.uint32Value,
-                  let pid = (info[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value, pid != excludingPID,
-                  (info[kCGWindowLayer as String] as? NSNumber)?.intValue == 0,
-                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
-                  let frame = CGRect(dictionaryRepresentation: bounds), frame.width > 1, frame.height > 1 else { return nil }
-            let owner = info[kCGWindowOwnerName as String] as? String ?? "Window"
-            let name = info[kCGWindowName as String] as? String ?? ""
-            return TrackedWindow(id: id, ownerPID: pid, title: name.isEmpty ? owner : "\(owner) — \(name)", frame: frame,
-                                 isOnScreen: (info[kCGWindowIsOnscreen as String] as? NSNumber)?.boolValue ?? false)
+        return list.compactMap { trackedWindow($0, excludingPID: excludingPID) }
+    }
+
+    private static func trackedWindow(_ info: [String: Any], excludingPID: pid_t) -> TrackedWindow? {
+        guard let id = (info[kCGWindowNumber as String] as? NSNumber)?.uint32Value,
+              let pid = (info[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value, pid != excludingPID,
+              let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+              let frame = CGRect(dictionaryRepresentation: bounds), frame.width > 1, frame.height > 1 else { return nil }
+        let owner = info[kCGWindowOwnerName as String] as? String ?? "Window"
+        let name = info[kCGWindowName as String] as? String ?? ""
+        return TrackedWindow(id: id, ownerPID: pid, title: name.isEmpty ? owner : "\(owner) — \(name)", frame: frame,
+                             isOnScreen: (info[kCGWindowIsOnscreen as String] as? NSNumber)?.boolValue ?? false)
+    }
+
+    static func systemWindow(at point: Position) -> TrackedWindow? {
+        // AppKit uses actual mouse hit-testing: z-order, transparent regions,
+        // floating windows and click-through windows all behave like a real click.
+        // Our model uses Quartz's top-left origin; AppKit uses the bottom-left.
+        let screenPoint = NSPoint(x: point.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - point.y)
+        let ownWindows = Set(NSApp.windows.map(\.windowNumber))
+        var below = 0, visited = Set<Int>()
+        while true {
+            let number = NSWindow.windowNumber(at: screenPoint, belowWindowWithWindowNumber: below)
+            guard number > 0, number <= Int(UInt32.max), visited.insert(number).inserted else { return nil }
+            if ownWindows.contains(number) { below = number; continue }
+            let id = CGWindowID(number)
+            guard let list = CGWindowListCopyWindowInfo(.optionIncludingWindow, id) as? [[String: Any]],
+                  let info = list.first,
+                  let window = trackedWindow(info, excludingPID: ProcessInfo.processInfo.processIdentifier),
+                  window.id == id, window.isOnScreen else { return nil }
+            return window
         }
     }
 
     func attach(at point: Position) {
-        guard let window = readWindows().first(where: { $0.isOnScreen && $0.frame.contains(CGPoint(x: point.x, y: point.y)) }) else {
+        guard !model.selectedIDs.isEmpty else { return }
+        guard let window = windowAtPoint(point) else {
             model.attachmentMessage = "No window here. Click inside an application window, or press Esc."
             return
         }
@@ -56,6 +82,7 @@ struct WindowAttachment: Equatable {
         model.commitTransaction()
         model.isPickingWindow = false
         model.attachmentMessage = "Following \(window.title)"
+        didAttach?(window)
         model.setEditing(false)
         synchronize()
     }
