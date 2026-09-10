@@ -86,28 +86,33 @@ import RullerCore
     _ = frontCommand("position \(backFrame.minX) \(backFrame.minY)")
     _ = frontCommand("float")
     RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.3))
-    func clickOverlap() {
+    func clickOverlap(expected: CGWindowID) {
         model.armWindowPicker()
+        // Application activation is asynchronous. Wait for the requested stack
+        // before sending a click; otherwise the preceding Attach can still raise
+        // its application after the helper's orderFront request.
+        wait({ WindowTracker.systemWindow(at: Position(backFrame.midX, backFrame.midY))?.id == expected },
+             message: { "Fixture window order did not settle before clicking" })
         let local = display.local(Position(backFrame.midX, backFrame.midY))
         let click = NSEvent.mouseEvent(with: .leftMouseDown, location: NSPoint(x: local.x, y: eventWindow.frame.height - local.y), modifierFlags: [], timestamp: 0,
                                      windowNumber: eventWindow.windowNumber, context: nil, eventNumber: 2, clickCount: 1, pressure: 1)!
         overlay.mouseDown(with: click)
     }
-    clickOverlap()
+    clickOverlap(expected: frontID)
     precondition(model.attachments[guide]?.window.id == frontID,
                  "Attach selected the background app instead of the overlapping floating window")
     _ = frontCommand("normal")
     _ = frontCommand("pass-through")
     RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
-    clickOverlap()
+    clickOverlap(expected: id)
     precondition(model.attachments[guide]?.window.id == id,
                  "A click-through window must not steal Attach from the window underneath")
     _ = frontCommand("capture-mouse")
     _ = frontCommand("front")
-    clickOverlap()
+    clickOverlap(expected: frontID)
     precondition(model.attachments[guide]?.window.id == frontID, "Front normal window should receive Attach")
     _ = frontCommand("hide")
-    clickOverlap()
+    clickOverlap(expected: id)
     precondition(model.attachments[guide]?.window.id == id, "Hidden windows must not receive Attach")
     print("Overlap passed: separate apps, floating window, click-through window, normal front window, hidden window.")
     if let second = model.displays.dropFirst().first,

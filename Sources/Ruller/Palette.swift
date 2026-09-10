@@ -15,10 +15,13 @@ struct PaletteView: View {
                     Text("A little clarity, on any screen.").font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button { model.showSettings?() } label: { Image(systemName: "gearshape").frame(width: 22, height: 24) }
+                Button { model.showSettings?() } label: {
+                    Image(systemName: "gearshape").frame(width: 22, height: 24).contentShape(Rectangle())
+                }
                     .buttonStyle(.borderless).help("Customize keyboard shortcuts").accessibilityLabel("Keyboard shortcuts")
                 Button { model.toggleVisibility() } label: {
                     Image(systemName: model.isVisible ? "eye" : "eye.slash").frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
                 }.buttonStyle(.borderless).help("Show or hide all lines · \(model.shortcutLabel(.visibility))")
                 .accessibilityLabel(model.isVisible ? "Hide lines" : "Show lines")
             }
@@ -57,6 +60,7 @@ struct PaletteView: View {
                             }.frame(maxWidth: .infinity).frame(height: 54)
                             .background(model.tool == kind ? accent.opacity(0.13) : Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 9))
                             .overlay(RoundedRectangle(cornerRadius: 9).stroke(model.tool == kind ? accent : Color.primary.opacity(0.09), lineWidth: 1))
+                            .contentShape(Rectangle())
                         }.buttonStyle(.plain).help("\(kind == .segment ? "Drag" : "Click") anywhere on a screen to place a \(kind.title.lowercased()) guide")
                     }
                 }
@@ -136,6 +140,7 @@ struct PaletteView: View {
                             Circle().fill(Color(nsColor: color.nsColor)).frame(width: 19, height: 19)
                                 .overlay(Circle().stroke(Color.primary.opacity(0.18), lineWidth: 0.5))
                                 .padding(3).overlay(Circle().stroke(model.color == color ? Color.primary.opacity(0.7) : .clear, lineWidth: 1.5))
+                                .contentShape(Rectangle())
                         }.buttonStyle(.plain).accessibilityLabel("\(color.rawValue.capitalized) line color")
                     }
                     Spacer(minLength: 0)
@@ -217,6 +222,7 @@ struct PaletteView: View {
                 .frame(maxWidth: .infinity).padding(.vertical, 8)
                 .foregroundStyle(model.isEditing == editing ? Color.primary : Color.secondary)
                 .background(model.isEditing == editing ? Color(nsColor: .controlBackgroundColor) : .clear, in: RoundedRectangle(cornerRadius: 7))
+                .contentShape(Rectangle())
         }.buttonStyle(.plain)
     }
 }

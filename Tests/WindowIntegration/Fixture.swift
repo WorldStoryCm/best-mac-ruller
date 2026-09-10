@@ -25,7 +25,7 @@ import AppKit
                 case "move": window.setFrameOrigin(NSPoint(x: window.frame.minX + 40, y: window.frame.minY + 30))
                 case "hide": window.orderOut(nil)
                 case "show": window.orderFrontRegardless()
-                case "front": window.orderFrontRegardless()
+                case "front": app.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
                 case "float": window.level = .floating; window.orderFrontRegardless()
                 case "normal": window.level = .normal; window.orderFrontRegardless()
                 case "pass-through": window.ignoresMouseEvents = true
